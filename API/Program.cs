@@ -1,3 +1,5 @@
+using Application.Core;
+using Application.Queries;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -8,10 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
- opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));   
+    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddCors();
+builder.Services.AddMediatR(x =>
+x.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>());
+
+builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
 
 var app = builder.Build();
 
@@ -26,7 +32,7 @@ var services = scope.ServiceProvider;
 
 try
 {
-    var context = services.GetRequiredService<AppDbContext>(); 
+    var context = services.GetRequiredService<AppDbContext>();
     await context.Database.MigrateAsync();
     await DbInitializer.SeedData(context);
 }
